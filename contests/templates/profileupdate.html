@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}
+Home
+{% endblock %}
+{% block content %}
+{% if user.is_authenticated %}
+
+<nav class="navbar navbar-expand-sm navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand" href="{% url 'home' %}">Contest Reminder</a>
+    </div>
+    <div class="btn-group">
+        <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            {{ user.profile.name }}
+        </button>
+        <div class="dropdown-menu dropdown-menu-right">
+            <button class="dropdown-item" type="button"><a class="dropdown-item" href="{% url 'myprofile' %}">My Account</a></button>
+            <button class="dropdown-item" type="button"><a class="dropdown-item" href="{% url 'profieupdate' %}">Update Profile</a></button>
+            <button class="dropdown-item" type="button"><a class="dropdown-item" href="{% url 'logout' %}">Logout</a></button>
+        </div>
+    </div>
+</nav>
+
+<div class="container p-5">
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <input type="submit" class="btn btn-primary mb-2" value="Submit" />
+    </form>
+</div>
+
+
+{% else %}
+<p>You are not logged in</p>
+<a href="{% url 'signin' %}">login</a>
+<a href="{% url 'signup' %}">signup</a>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% block title %}
+Home
+{% endblock %}
+{% block content %}
+{% if user.is_authenticated %}
+<nav class="navbar navbar-expand-sm navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand" href="{% url 'home' %}">Contest Reminder</a>
+    </div>
+    <div class="btn-group">
+        <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            {{ profile.name }}
+        </button>
+        <div class="dropdown-menu dropdown-menu-right">
+            <button class="dropdown-item" type="button"><a class="dropdown-item" href="{% url 'myprofile' %}">My Account</a></button>
+            <button class="dropdown-item" type="button"><a class="dropdown-item" href="{% url 'profieupdate' %}">Update Profile</a></button>
+            <button class="dropdown-item" type="button"><a class="dropdown-item" href="{% url 'logout' %}">Logout</a></button>
+        </div>
+    </div>
+</nav>
+<div class="container p-5">
+    <table class="table table-striped text-center">
+        <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">Platform</th>
+                <th scope="col">Reminder</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <th scope="row">1</th>
+                <td>CodeChef</td>
+                <td>
+                    {% if profile.codeChef %}
+                    <h6>ON</h6>
+                    {% else %}
+                    <h6>OFF</h6>
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">2</th>
+                <td>Codeforces</td>
+                <td>
+                    {% if profile.codeForces %}
+                    <h6>ON</h6>
+                    {% else %}
+                    <h6>OFF</h6>
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">3</th>
+                <td>HackerEarth</td>
+                <td>
+                    {% if profile.hackerEarth %}
+                    <h6>ON</h6>
+                    {% else %}
+                    <h6>OFF</h6>
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">4</th>
+                <td>HackerRank</td>
+                <td>
+                    {% if profile.hackerRank %}
+                    <h6>ON</h6>
+                    {% else %}
+                    <h6>OFF</h6>
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">5</th>
+                <td>Spoj</td>
+                <td>
+                    {% if profile.spoj %}
+                    <h6>ON</h6>
+                    {% else %}
+                    <h6>OFF</h6>
+                    {% endif %}
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <div class="border border-light p-5 ">
+        <div class="span12" style="text-align:center">
+            <a href="{% url 'profieupdate' %}"><button class="btn btn-primary" type="button">Update Profile</button></a>
+        </div>
+    </div>
+</div>
+{% else %}
+<p>You are not logged in</p>
+<a href="{% url 'signin' %}">login</a>
+<a href="{% url 'signup' %}">signup</a>
+{% endif %}
+{% endblock %}
