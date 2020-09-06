@@ -13,7 +13,7 @@ from .views import Reminder
 
 def home(request):
 
-    return HttpResponse('Home')
+    return render(request,'home.html')
 
 def testing(request):
     users = CustomUser.objects.all()

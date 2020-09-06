@@ -150,7 +150,7 @@ class Reminder:
         '''
         self.collect_data()
         print('in reminder')
-        if len(self.with_in_hr) == 0:
+        if not len(self.with_in_hr) == 0:
             print('in reminder')
             self.send_mail(users)
 
