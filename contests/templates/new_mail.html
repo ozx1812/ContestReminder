@@ -60,14 +60,25 @@
 
 <body>
     <div class="bg-text">
-        <img class="img" src="cid:image1" height="110" width="110" alt="Host Photo">
+
+        <!-- this is as free image hosting maybe can be useful    
+            https://ibb.co/CBQRRh0 //spoj
+            https://ibb.co/42Mrrmb //hackerrank
+            https://ibb.co/x3qLZPf //hackerearth
+            https://ibb.co/HDNsHfP //codeforces
+            https://ibb.co/dDLHdM7 //codechef
+        -->
+    
 
         {% for contest in contests %}
-        <h1 style="top: 0px; font-size:30px"> {{contest.Name}} </h1>
-        <p style="font-size:17px"><span style="color:green;"> Date 📅: </span> {{contest.StartDate}}</p>
-        <p style="font-size:17px"><span style="color:green;"> Time ⏰: </span>{{contest.StartTime}}</p>
-        <p style="font-size:17px"><span style="color:green;"> Duration ⌛: </span> {{contest.Duration}}</p>
-        <a class="btn1" href="{{contest.contestLink}}" style="text-decoration:none">Contest Link</a>
+            <div>
+                <img class="img" src="./../static/images/"{{contest.Host + ".png"}}" height="110" width="110" alt="Host Photo">
+                <h1 style="top: 0px; font-size:30px"> {{contest.Name}} </h1>
+                <p style="font-size:17px"><span style="color:green;"> Date 📅: </span> {{contest.StartDate}}</p>
+                <p style="font-size:17px"><span style="color:green;"> Time ⏰: </span>{{contest.StartTime}}</p>
+                <p style="font-size:17px"><span style="color:green;"> Duration ⌛: </span> {{contest.Duration}}</p>
+                <a class="btn1" href="{{contest.contestLink}}" style="text-decoration:none">Contest Link</a>
+            </div>
         {% endfor %}
 
         <p style="font-size:17px">

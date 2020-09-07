@@ -22,10 +22,6 @@ TEMPLATE_DIR = os.path.join(BASE_DIR, 'templates')
 # ]
 
 
-
-
-
-
 class Reminder:
 
     def __init__(self):
@@ -44,15 +40,24 @@ class Reminder:
                 this function is for checking if contest will be with in one hour
         '''
         cur_time = datetime.datetime.now()
-        if abs(cur_time - date_time_obj).seconds <= 3600:
+        if abs(cur_time - date_time_obj).seconds <= 36000:
             return True
         return False
+
+    def date_formatter(self, temp_time):
+        '''
+        return date from datetime obj
+        '''
+        return datetime.datetime.strptime(temp_time, "%a, %d %b %Y %H:%M")
+        # return datetime.datetime.strftime(temp_time, "%d %b %Y")
 
     def time_formatter(self, temp_time):
         '''
                 this function will return datetime object from string base time by formatting
         '''
         return datetime.datetime.strptime(temp_time, "%a, %d %b %Y %H:%M")
+        
+        # return datetime.datetime.strftime(temp_time, "%H:%M")
 
     def collect_data(self):
         '''
@@ -72,8 +77,9 @@ class Reminder:
         for contest in self.upcoming:
             contest_details = {
                 'Name': contest['Name'],
-                'StartTime': self.time_formatter(contest['StartTime']),
-                'EndTime': self.time_formatter(contest['EndTime']),
+                'StartTime': datetime.datetime.strftime(self.time_formatter(contest['StartTime']), "%H:%M"),
+                'EndTime': datetime.datetime.strftime(self.time_formatter(contest['EndTime']), "%H:%M"),
+                'StartDate': datetime.datetime.strftime(self.date_formatter(contest['StartTime']), "%d %b %Y"),
                 'Duration': contest['Duration'],
                 'Host': contest['Platform'],
                 'contestLink': contest['url'],
@@ -128,7 +134,7 @@ class Reminder:
         '''
         subject = 'Contest Reminder'
         # mail_html_path = "########"  # fill this path relative path
-        mail_html_path = TEMPLATE_DIR+'/new_mail.html'  # fill this path relative path
+        mail_html_path = TEMPLATE_DIR + '/new_mail.html'  # fill this path relative path
 
         html_text = self.generate_body(self.with_in_hr, mail_html_path)
         message = {
@@ -155,11 +161,10 @@ class Reminder:
             self.send_mail(users)
 
 
-
 # rem = Reminder()
 # rem.reminder(users)
 
-# schedule.every().hour.do(rem.reminder(users)) 
+# schedule.every().hour.do(rem.reminder(users))
 
 
 # while True:

@@ -2,7 +2,22 @@
 {% load static %}
 {% block title %}ContestReminder{% endblock %}
 {% block body %}
-<div>
+
+
+<div class="container p-5">
+    <p>Functionality are</p>
+    <p> - without login some data rendering about running events features of this website(insights)</p>
+    <p> - new_mail has issue with some formatting css and image is not visible in mail i'm using contest.Host + '.png' for dynamic images based on plateform but not working.</p>
+    <p> - mail has date and time in valid format but for images change is required!</p>
+    <p> - apply your ideas for home page ans signup and signin is not required to visit website</p>
+    <p> - in setting.py i have added LOGIN_REDIRECT and LOGOUT_REDIRECT to login page.</p>
+    <p> - join us register or already user login here</p>
+    <p> - my_profile has some strange view on top so just make bar for that and add all three links.(my_profile,update_profile,logout)</p>
+    <p> - "/testing" is for now as sending mail by link visit feature so in future we will remove it. and add scheduler for that.</p>
+    <p> - add features and suggestions of yours here...</p>
+    
+    <a href="{% url 'signup' %}"><input type="button" value="SignUp"></a>
+    <a href="{% url 'signin' %}"><input type="button" value="Login"></a>
     
 </div>
 {% endblock%}   
