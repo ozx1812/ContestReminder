@@ -1,15 +1,25 @@
 import schedule
-import time
+from .settings import EMAIL_HOST_USER, BASE_DIR, EMAIL_HOST_PASSWORD
+from smtplib import SMTP
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart 
+from email.mime.image import MIMEImage
+from email.mime.base import MIMEBase 
+from email import encoders
+
+
+from jinja2 import Environment, FileSystemLoader
+import os
 import datetime
 import requests
-from .settings import EMAIL_HOST_USER, BASE_DIR
-from django.core.mail import EmailMultiAlternatives
-import codecs
-import os
-from jinja2 import Template
-# from BASE import CustomUser,Profile
-# users = CustomUser.objects.all()
+import pytz
+
+base_dir = os.path.dirname(__file__)
 TEMPLATE_DIR = os.path.join(BASE_DIR, 'templates')
+image_dir = os.path.join(BASE_DIR,'static/images')
+
+
+env = Environment(loader=FileSystemLoader('{0}'.format(os.path.dirname(__file__))))
 
 
 # users = [
@@ -39,10 +49,17 @@ class Reminder:
         '''
                 this function is for checking if contest will be with in one hour
         '''
-        cur_time = datetime.datetime.now()
-        if abs(cur_time - date_time_obj).seconds <= 36000:
+        cur_time = datetime.datetime.now()      
+        date_time_obj = self.time_formatter(date_time_obj)
+        diff = (cur_time - date_time_obj)
+        duration_in_s = diff.total_seconds()+19800 # .now() give utc time but api give Asia/kolkata time 
+        # so add 5hr 30min = 19800 sec difference. 
+        hrs = divmod(duration_in_s, 3600)[0]
+        print(hrs)
+        if abs(hrs) < 9.0: # number of hours
             return True
-        return False
+        else:
+            return False
 
     def date_formatter(self, temp_time):
         '''
@@ -83,82 +100,97 @@ class Reminder:
                 'Duration': contest['Duration'],
                 'Host': contest['Platform'],
                 'contestLink': contest['url'],
-                'with_in_an_hour': self.if_in_next_one_hour(self.time_formatter(contest['StartTime'])),
+                'with_in_an_hour': self.if_in_next_one_hour(contest['StartTime']),
             }
             self.contests.append(contest_details)
 
         self.with_in_hr = []
-        for item in self.contests:
-            if item['with_in_an_hour']:
+        for idx, item in enumerate(self.contests):
+            # print('#{}..{}'.format(idx, item))
+            if item['with_in_an_hour'] == True:
                 self.with_in_hr.append(item)
+                print('#{}..{}'.format(idx, item))
 
-    def generate_body(self, contests, mail_html_path):
-        '''
-                this function will generate html message for mail body by using jinja2 templating
-                this function gets contests(list) as arg and use for generating html
-                and return html_text message
-        '''
-        body = ""
-        with open(mail_html_path, 'r', encoding="utf-8") as file:
-            body = file.read()
-        template = Template(body)
-        # print(template.render(contests=contests))
+        # for idx, item in enumerate(self.contests):
+        #     print('#{}..{}'.format(idx, item))
+        # print('contests len {}'.format(len(self.contests)))
 
-        html_text = template.render(contests=contests)
-        return html_text
+    
+    def get_template(self,contest):
+        env = Environment(loader=FileSystemLoader('{0}'.format(TEMPLATE_DIR)))
+        template = env.get_template('mail2.html')
+        output = template.render(contest=contest)
+        return output
 
-    def mail_user(self, message, from_mail, to_mail):
-        '''
-                this function mail one user at time but we can do with multiple at time
-                by passing list of mail(type=str) instead [to_mail] change according
-                this function uses django.core.mail.EmailMultiAlternatives class which is 
-                wrapper around smptp server so pass argmunts accordingly.
-                here msg.attach_alternative is used specificly for html mail istead is can use 
-                plain text for not supported client.
-        '''
-        subject = message["subject"]
-        text_content = message["text"]
-        html_content = message["html"]
+    def send_mail(self, user, contest, server, from_mail):
+        subject = 'ContestReminder'
 
-        msg = EmailMultiAlternatives(
-            subject, text_content, from_mail, [to_mail])
-        msg.attach_alternative(html_content, "text/html")
-        msg.send()
-        print('mail sent success...')
+        message = MIMEMultipart('related')
 
-    def send_mail(self, users):
-        '''
-                this function is sending reminder mail to each user passed in arg.
-                here from_mail = EMAIL_HOST_USER can be set from .settings 
-                see django.core.mail documentation for that.
-        '''
-        subject = 'Contest Reminder'
-        # mail_html_path = "########"  # fill this path relative path
-        mail_html_path = TEMPLATE_DIR + '/new_mail.html'  # fill this path relative path
+        message['Subject'] = subject
+        message['From'] = from_mail
+        to_mail = str(user.email)
+        message['To'] = to_mail
 
-        html_text = self.generate_body(self.with_in_hr, mail_html_path)
-        message = {
-            "subject": subject,
-            "text": "Your browser doesn't support html mail.",
-            "html": html_text,
-        }
+        message.preamble = 'This is a multi-part message in MIME format.'
 
+        msgAlternative = MIMEMultipart('alternative')
+        message.attach(msgAlternative)
+
+        msgText = MIMEText('Hello coders! Are you all set for upcoming contest?')
+        msgAlternative.attach(msgText)
+
+        bodyContent = self.get_template(contest)
+        
+        msgText = MIMEText(bodyContent, 'html')
+        msgAlternative.attach(msgText)
+
+        img_path = image_dir
+        if(contest['Host'] == "CODEFORCES"):
+            img_path += '/CODEFORCES.png'
+        elif(contest['Host'] == "CODECHEF"):
+            img_path += '/CODECHEF.png'
+        elif(contest['Host'] == "HACKEREARTH"):
+            img_path += '/HACKEREARTH.png'
+        elif(contest['Host'] == "HACKERRANK"):
+            img_path += '/HACKERRANK.png'
+        elif(contest['Host'] == "SPOJ"):
+            img_path += '/SPOJ.png'
+
+        fp = open(img_path, 'rb')
+        msgImage = MIMEImage(fp.read())
+        fp.close()
+
+        msgImage.add_header('Content-ID', '<image1>')
+        message.attach(msgImage)
+        
+        msgBody = message.as_string()
+        try:
+            server.sendmail(from_mail, to_mail, msgBody)
+        except:
+            print('ERROR: mail sending error occured...')
+        else:
+            print('mail sent successfully...')
+        
+
+
+    def send_mails(self,users,contest):
         from_mail = EMAIL_HOST_USER
-
+        server = SMTP('smtp.gmail.com', 587)
+        server.starttls()
+        server.login(from_mail, EMAIL_HOST_PASSWORD)
         for user in users:
-            to_mail = str(user.email)
-            self.mail_user(message, from_mail, to_mail)
+            self.send_mail(user,contest,server,from_mail)
+        server.quit()
 
     def reminder(self, users):
-        '''
-                this is main calling function for all the above methods.
-                we get users data as list of mail and send_mail to them.
-        '''
         self.collect_data()
-        print('in reminder')
         if not len(self.with_in_hr) == 0:
-            print('in reminder')
-            self.send_mail(users)
+            print('{0} contest are in next hr...'.format(len(self.with_in_hr)))
+            for contest in self.with_in_hr:
+                self.send_mails(users,contest)  
+        else:
+            print('no contests in next hr...',len(self.with_in_hr))
 
 
 # rem = Reminder()
